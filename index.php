@@ -25,6 +25,7 @@ Seliweb_Annonces::check_expired();
 $toutes   = Seliweb_Annonces::get_annonces_publiques( array_filter( $filters ) );
 $total    = count( $toutes );
 $nb_pages = $par_page > 0 ? (int) ceil( $total / $par_page ) : 1;
+
 $annonces = array_slice( $toutes, $offset, $par_page );
 
 $groupe_visiteur = null;
@@ -59,8 +60,14 @@ swv_render_pagination( $page_courante, $nb_pages, $total, true );
                     <?php esc_html_e( 'Aucune annonce trouvée.', 'seliweb-view' ); ?>
                 </div>
             <?php else : ?>
-                <div class="swv-annonces-<?php echo esc_attr( swv_display_mode() ); ?>"
-                     <?php if ( swv_display_mode() === 'grille' ) echo 'style="--swv-cols:' . swv_grid_cols() . '"'; ?>>
+                <?php
+                $swv_mode = swv_display_mode();
+                $swv_cols = swv_grid_cols();
+                $swv_cls  = 'swv-annonces-' . $swv_mode;
+                if ( $swv_mode === 'grille' ) $swv_cls .= ' swv-cols-' . $swv_cols;
+                ?>
+                <div class="<?php echo esc_attr( $swv_cls ); ?>"
+                     <?php if ( $swv_mode === 'grille' ) echo 'style="--swv-cols:' . $swv_cols . '"'; ?>>
                     <?php foreach ( $annonces as $annonce ) swv_render_card( $annonce ); ?>
                 </div>
             <?php endif; ?>

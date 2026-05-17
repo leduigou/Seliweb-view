@@ -22,7 +22,9 @@ function swv_opt( $key, $default = null ) {
 // Raccourcis utilisés dans les templates
 function swv_display_mode() { return swv_opt('display_mode'); }
 function swv_grid_cols()    { return intval( swv_opt('grid_cols') ); }
-function swv_per_page()     { return intval( swv_opt('per_page') ); }
+function swv_per_page() {
+    return max( 1, intval( swv_opt('per_page') ) );
+}
 function swv_color()        { return swv_opt('color_primary'); }
 
 // ================================================================
@@ -438,7 +440,12 @@ function swv_render_card($annonce, $mode=null) {
                     <?php if ($annonce->est_don): ?>
                         <span class="swv-card-don"><?php esc_html_e('Don','seliweb-view'); ?></span>
                     <?php elseif (!empty($prix)): ?>
-                        <?php foreach($prix as $p) echo esc_html($p->prix.' '.($p->symbole?:$p->nom)).' '; ?>
+                        <?php foreach($prix as $idx_p => $p): ?>
+                            <?php if ($idx_p > 0): ?>
+                                <span class="swv-card-prix-coord"><?php echo esc_html($p->coordination ?: 'OU'); ?></span>
+                            <?php endif; ?>
+                            <span class="swv-card-prix-item"><?php echo esc_html($p->prix.' '.($p->symbole?:$p->nom)); ?></span>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -473,7 +480,12 @@ function swv_render_card($annonce, $mode=null) {
                     <?php if ($annonce->est_don): ?>
                         <span class="swv-card-don"><?php esc_html_e('Don','seliweb-view'); ?></span>
                     <?php elseif (!empty($prix)): ?>
-                        <?php foreach($prix as $p) echo esc_html($p->prix.' '.($p->symbole?:$p->nom)).' '; ?>
+                        <?php foreach($prix as $idx_p => $p): ?>
+                            <?php if ($idx_p > 0): ?>
+                                <span class="swv-card-prix-coord"><?php echo esc_html($p->coordination ?: 'OU'); ?></span>
+                            <?php endif; ?>
+                            <span class="swv-card-prix-item"><?php echo esc_html($p->prix.' '.($p->symbole?:$p->nom)); ?></span>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
