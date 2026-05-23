@@ -22,7 +22,11 @@ function swv_opt( $key, $default = null ) {
 // Raccourcis utilisés dans les templates
 function swv_display_mode() { return swv_opt('display_mode'); }
 function swv_grid_cols()    { return intval( swv_opt('grid_cols') ); }
-function swv_per_page()     { return intval( swv_opt('per_page') ); }
+function swv_per_page() {
+    global $wpdb;
+    $val = $wpdb->get_var( "SELECT valeur FROM {$wpdb->prefix}seliweb_parametres WHERE cle='annonces_par_page' LIMIT 1" );
+    return ( $val !== null && intval( $val ) > 0 ) ? intval( $val ) : 12;
+}
 function swv_color()        { return swv_opt('color_primary'); }
 
 // ================================================================
@@ -66,19 +70,6 @@ function swv_customizer( $wp_customize ) {
             3 => __( '3 colonnes', 'seliweb-view' ),
             4 => __( '4 colonnes', 'seliweb-view' ),
         ),
-    ) );
-
-    // ---- Annonces par page -------------------------------------
-    $wp_customize->add_setting( 'swv_per_page', array(
-        'default'           => 12,
-        'sanitize_callback' => 'absint',
-    ) );
-    $wp_customize->add_control( 'swv_per_page', array(
-        'label'       => __( 'Annonces par page', 'seliweb-view' ),
-        'description' => __( 'Entre 4 et 50.', 'seliweb-view' ),
-        'section'     => 'swv_settings',
-        'type'        => 'number',
-        'input_attrs' => array( 'min' => 4, 'max' => 50, 'step' => 1 ),
     ) );
 
     // ---- Couleur principale ------------------------------------
@@ -438,7 +429,12 @@ function swv_render_card($annonce, $mode=null) {
                     <?php if ($annonce->est_don): ?>
                         <span class="swv-card-don"><?php esc_html_e('Don','seliweb-view'); ?></span>
                     <?php elseif (!empty($prix)): ?>
-                        <?php foreach($prix as $p) echo esc_html($p->prix.' '.($p->symbole?:$p->nom)).' '; ?>
+                        <?php foreach($prix as $idx_p => $p): ?>
+                            <?php if ($idx_p > 0): ?>
+                                <span class="swv-card-prix-coord"><?php echo esc_html($p->coordination ?: 'OU'); ?></span>
+                            <?php endif; ?>
+                            <span class="swv-card-prix-item"><?php echo esc_html($p->prix.' '.($p->symbole?:$p->nom)); ?></span>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -473,7 +469,12 @@ function swv_render_card($annonce, $mode=null) {
                     <?php if ($annonce->est_don): ?>
                         <span class="swv-card-don"><?php esc_html_e('Don','seliweb-view'); ?></span>
                     <?php elseif (!empty($prix)): ?>
-                        <?php foreach($prix as $p) echo esc_html($p->prix.' '.($p->symbole?:$p->nom)).' '; ?>
+                        <?php foreach($prix as $idx_p => $p): ?>
+                            <?php if ($idx_p > 0): ?>
+                                <span class="swv-card-prix-coord"><?php echo esc_html($p->coordination ?: 'OU'); ?></span>
+                            <?php endif; ?>
+                            <span class="swv-card-prix-item"><?php echo esc_html($p->prix.' '.($p->symbole?:$p->nom)); ?></span>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>

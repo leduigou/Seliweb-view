@@ -1,6 +1,7 @@
 <?php
 /**
- * Template principal — affichage des annonces
+ * Template Name: Annonces SEL
+ * Description: Page d'affichage des annonces du SEL
  */
 get_header();
 
