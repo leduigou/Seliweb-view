@@ -3,52 +3,57 @@
  * template-parts/annonce-detail.php
  * Reçoit : $args['annonce_id'], $args['groupe_visiteur']
  */
-if ( ! class_exists('Seliweb_Annonces') ) return;
+if ( ! class_exists( 'Seliweb_Annonces' ) ) return;
 
 global $wpdb;
 $annonce_id      = intval( $args['annonce_id'] ?? 0 );
 $groupe_visiteur = $args['groupe_visiteur'] ?? null;
 
-$ta   = $wpdb->prefix . 'seliweb_annonces';
-$tc   = $wpdb->prefix . 'seliweb_categories';
-$tr   = $wpdb->prefix . 'seliweb_rubriques';
-$ts   = $wpdb->prefix . 'seliweb_statuts';
-$tm   = $wpdb->prefix . 'seliweb_membres';
+$ta     = $wpdb->prefix . 'seliweb_annonces';
+$tc     = $wpdb->prefix . 'seliweb_categories';
+$tr     = $wpdb->prefix . 'seliweb_rubriques';
+$ts     = $wpdb->prefix . 'seliweb_statuts';
+$tm     = $wpdb->prefix . 'seliweb_membres';
+$tp_sel = $wpdb->prefix . 'seliweb_parametres';
 
-$detail = $wpdb->get_row( $wpdb->prepare(
-    "SELECT a.* FROM $ta a WHERE a.id=%d",
-    $annonce_id
-) );
+$detail           = $wpdb->get_row( $wpdb->prepare( "SELECT a.* FROM $ta a WHERE a.id=%d", $annonce_id ) );
+$membre           = null;
+$is_sel_annonceur = false;
 
 if ( $detail ) {
-    // Ajouter les infos liées séparément
-    $detail->cat_nom = $wpdb->get_var( $wpdb->prepare(
-        "SELECT nom FROM $tc WHERE id = %d",
-        intval( $detail->categorie_id )
-    ) );
-    $detail->rub_nom = $wpdb->get_var( $wpdb->prepare(
-        "SELECT nom FROM $tr WHERE id = %d",
-        intval( $detail->rubrique_id )
-    ) );
-    $detail->statut_slug = $wpdb->get_var( $wpdb->prepare(
-        "SELECT slug FROM $ts WHERE id = %d",
-        intval( $detail->statut_id )
-    ) );
+    $detail->cat_nom    = $wpdb->get_var( $wpdb->prepare( "SELECT nom FROM $tc WHERE id=%d", intval( $detail->categorie_id ) ) );
+    $detail->rub_nom    = $wpdb->get_var( $wpdb->prepare( "SELECT nom FROM $tr WHERE id=%d", intval( $detail->rubrique_id ) ) );
+    $detail->statut_slug = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM $ts WHERE id=%d", intval( $detail->statut_id ) ) );
+
     $membre = $wpdb->get_row( $wpdb->prepare(
-        "SELECT telephone, adresse, ville FROM $tm WHERE id = %d",
+        "SELECT tel_portable, tel_fixe, adresse1, adresse2, ville, code_postal,
+                show_email, show_tel_portable, show_tel_fixe, show_adresse,
+                groupe_id, numero_sel, wp_user_id
+         FROM $tm WHERE id=%d",
         intval( $detail->membre_id )
     ) );
     if ( $membre ) {
-        $detail->telephone = $membre->telephone;
-        $detail->adresse = $membre->adresse;
-        $detail->ville = $membre->ville;
+        $detail->tel_portable      = $membre->tel_portable;
+        $detail->tel_fixe          = $membre->tel_fixe;
+        $detail->ville             = $membre->ville;
+        $detail->code_postal       = $membre->code_postal;
+        $detail->show_email        = (int) $membre->show_email;
+        $detail->show_tel_portable = (int) $membre->show_tel_portable;
+        $detail->show_tel_fixe     = (int) $membre->show_tel_fixe;
+        $detail->show_adresse      = (int) $membre->show_adresse;
+        $detail->groupe_id         = (int) $membre->groupe_id;
+        $detail->numero_sel        = $membre->numero_sel;
+        $uid = (int) $membre->wp_user_id;
+        $detail->prenom    = get_user_meta( $uid, 'first_name',        true );
+        $detail->nom       = get_user_meta( $uid, 'last_name',         true );
+        $detail->organisme = get_user_meta( $uid, 'seliweb_organisme', true );
     }
+    $sel_actif        = (bool) $wpdb->get_var( "SELECT valeur FROM $tp_sel WHERE cle='sel_actif' LIMIT 1" );
+    $sel_gid          = (int)  $wpdb->get_var( "SELECT valeur FROM $tp_sel WHERE cle='sel_groupe_id' LIMIT 1" );
+    $is_sel_annonceur = $membre && $sel_actif && $sel_gid > 0 && isset( $detail->groupe_id ) && $detail->groupe_id === $sel_gid;
+
     $detail->user_email = $wpdb->get_var( $wpdb->prepare(
-        "SELECT user_email FROM {$wpdb->users} WHERE ID = (SELECT wp_user_id FROM $tm WHERE id = %d)",
-        intval( $detail->membre_id )
-    ) );
-    $detail->membre_nom = $wpdb->get_var( $wpdb->prepare(
-        "SELECT display_name FROM {$wpdb->users} WHERE ID = (SELECT wp_user_id FROM $tm WHERE id = %d)",
+        "SELECT user_email FROM {$wpdb->users} WHERE ID=(SELECT wp_user_id FROM $tm WHERE id=%d)",
         intval( $detail->membre_id )
     ) );
 }
@@ -56,116 +61,145 @@ if ( $detail ) {
 $detail_ok = $detail && ( $detail->statut_slug !== 'expire' );
 
 if ( ! $detail_ok ) {
-    ?>
-<main id="swv-main">
-    <div class="swv-single-wrap">
-        <p class="swv-annonces-empty"><?php esc_html_e('Annonce introuvable ou expirée.','seliweb-view'); ?></p>
-    </div>
-</main>
-<?php return; } endif;
+    echo '<main id="swv-main"><div class="swv-single-wrap"><p class="swv-annonces-empty">'
+        . esc_html__( 'Annonce introuvable ou expirée.', 'seliweb-view' )
+        . '</p></div></main>';
+    return;
+}
 
-$prix    = Seliweb_Annonces::get_prix( $annonce_id );
-$page_url = swv_annonces_page_url();
-
-// Traitement envoi message
-if ( isset( $_GET['seliweb_message_envoye'] ) ) :
-    echo '<div style="background:#edfaef;border-left:4px solid #1d6a4a;padding:10px 14px;margin:12px 20px;border-radius:4px;font-size:.9rem;">'
-       . esc_html__('Votre message a été envoyé.','seliweb-view') . '</div>';
-endif;
+$prix      = Seliweb_Annonces::get_prix( $annonce_id );
+$page_url  = swv_annonces_page_url();
+$retour_page = max( 1, intval( $_GET['sel_page'] ?? 1 ) );
+$retour_url  = $retour_page > 1 ? add_query_arg( 'sel_page', $retour_page, $page_url ) : $page_url;
 ?>
 
 <main id="swv-main">
     <div class="swv-main-inner">
-
         <div class="swv-detail-wrap">
 
-            <a href="<?php echo esc_url($page_url); ?>" class="swv-detail-back">
-                &larr; <?php esc_html_e('Retour aux annonces','seliweb-view'); ?>
+            <a href="<?php echo esc_url( $retour_url ); ?>" class="swv-detail-back">
+                &larr; <?php esc_html_e( 'Retour aux annonces', 'seliweb-view' ); ?>
             </a>
 
             <h1 style="font-family:var(--font-title);margin-bottom:12px;">
-                <?php echo esc_html($detail->titre); ?>
+                <?php echo esc_html( $detail->titre ); ?>
             </h1>
 
-            <!-- Tags -->
             <div class="swv-card-tags" style="margin-bottom:16px;">
-                <span class="swv-tag swv-tag-cat"><?php echo esc_html($detail->cat_nom); ?></span>
-                <?php if ($detail->cat_slug==='annonces' && $detail->type_annonce) : ?>
-                    <span class="swv-tag swv-tag-type"><?php echo esc_html(ucfirst($detail->type_annonce)); ?></span>
+                <span class="swv-tag swv-tag-cat"><?php echo esc_html( $detail->cat_nom ); ?></span>
+                <?php if ( $detail->cat_slug === 'annonces' && $detail->type_annonce ) : ?>
+                    <span class="swv-tag swv-tag-type"><?php echo esc_html( ucfirst( $detail->type_annonce ) ); ?></span>
                 <?php endif; ?>
-                <?php if ($detail->rub_nom) : ?>
-                    <span class="swv-tag swv-tag-rubrique"><?php echo esc_html($detail->rub_nom); ?></span>
+                <?php if ( $detail->rub_nom ) : ?>
+                    <span class="swv-tag swv-tag-rubrique"><?php echo esc_html( $detail->rub_nom ); ?></span>
                 <?php endif; ?>
-                <?php if ($detail->statut_slug==='urgent') : ?>
-                    <span class="swv-card-urgent"><?php esc_html_e('URGENT','seliweb-view'); ?></span>
+                <?php if ( $detail->statut_slug === 'urgent' ) : ?>
+                    <span class="swv-card-urgent"><?php esc_html_e( 'URGENT', 'seliweb-view' ); ?></span>
                 <?php endif; ?>
             </div>
 
-            <!-- Photos -->
-            <?php if ($detail->photo1 || $detail->photo2) : ?>
+            <?php if ( $detail->photo1 || $detail->photo2 ) : ?>
             <div class="swv-detail-photos">
-                <?php if ($detail->photo1) echo '<img src="'.esc_url($detail->photo1).'" alt="">'; ?>
-                <?php if ($detail->photo2) echo '<img src="'.esc_url($detail->photo2).'" alt="">'; ?>
+                <?php if ( $detail->photo1 ) echo '<img src="' . esc_url( $detail->photo1 ) . '" alt="">'; ?>
+                <?php if ( $detail->photo2 ) echo '<img src="' . esc_url( $detail->photo2 ) . '" alt="">'; ?>
             </div>
             <?php endif; ?>
 
-            <!-- Texte -->
             <div class="swv-detail-texte">
-                <?php echo nl2br(esc_html($detail->texte)); ?>
+                <?php echo nl2br( esc_html( $detail->texte ) ); ?>
             </div>
 
-            <!-- Prix -->
-            <?php if ($detail->est_don) : ?>
+            <?php if ( $detail->est_don ) : ?>
                 <p style="font-weight:700;color:var(--color-primary);margin-bottom:16px;">
-                    <?php esc_html_e('Don','seliweb-view'); ?>
+                    <?php esc_html_e( 'Don', 'seliweb-view' ); ?>
                 </p>
-            <?php elseif (!empty($prix)) : ?>
-                <p style="font-weight:700;color:var(--color-primary-dk);margin-bottom:16px;">
-                    <?php foreach($prix as $p) echo esc_html($p->prix.' '.($p->symbole?:$p->nom)).' '; ?>
-                </p>
+            <?php elseif ( ! empty( $prix ) ) : ?>
+                <div style="font-weight:700;color:var(--color-primary-dk);margin-bottom:16px;">
+                    <?php foreach ( $prix as $idx_p => $p ) : ?>
+                        <?php if ( $idx_p > 0 ) : ?>
+                            <span style="margin:0 6px;font-weight:400;"><?php echo esc_html( $p->coordination ?: 'OU' ); ?></span>
+                        <?php endif; ?>
+                        <span><?php echo esc_html( $p->prix . ' ' . ( $p->symbole ?: $p->nom ) ); ?></span>
+                    <?php endforeach; ?>
+                </div>
             <?php endif; ?>
 
             <!-- Contact -->
             <div class="swv-detail-contact">
-                <h4><?php esc_html_e('Contacter l\'annonceur','seliweb-view'); ?></h4>
+                <h4><?php esc_html_e( 'Contacter l\'annonceur', 'seliweb-view' ); ?></h4>
 
-                <?php if (!is_user_logged_in()) : ?>
-                    <p><em>
-                        <?php printf(
-                            wp_kses(__('<a href="%s">Connectez-vous</a> pour contacter l\'annonceur.','seliweb-view'), array('a'=>array('href'=>array()))),
-                            esc_url(wp_login_url(get_permalink()))
-                        ); ?>
-                    </em></p>
+                <?php if ( $membre && ( $detail->code_postal || $detail->ville ) ) : ?>
+                    <p><?php esc_html_e( 'Localisation :', 'seliweb-view' ); ?>
+                        <?php echo esc_html( trim( $detail->code_postal . ' ' . $detail->ville ) ); ?>
+                    </p>
+                <?php endif; ?>
 
-                <?php elseif (!$groupe_visiteur) : ?>
-                    <p><em><?php esc_html_e('Vous n\'êtes rattaché à aucun groupe.','seliweb-view'); ?></em></p>
+                <?php if ( ! is_user_logged_in() ) : ?>
+                    <p><em><?php printf(
+                        wp_kses( __( '<a href="%s">Connectez-vous</a> pour contacter l\'annonceur.', 'seliweb-view' ), array( 'a' => array( 'href' => array() ) ) ),
+                        esc_url( wp_login_url( get_permalink() ) )
+                    ); ?></em></p>
+
+                <?php elseif ( ! $groupe_visiteur ) : ?>
+                    <p><em><?php esc_html_e( 'Vous n\'êtes rattaché à aucun groupe.', 'seliweb-view' ); ?></em></p>
 
                 <?php else : ?>
 
-                    <?php if ($groupe_visiteur->contact_mail_cache && !isset($_GET['seliweb_message_envoye'])) : ?>
-                    <form method="post" action="<?php echo esc_url($page_url); ?>" style="margin-bottom:12px;">
-                        <?php wp_nonce_field('seliweb_contact_'.$annonce_id,'seliweb_contact_nonce'); ?>
-                        <input type="hidden" name="annonce_id" value="<?php echo intval($annonce_id); ?>">
-                        <textarea name="message" rows="4" required
-                                  style="width:100%;max-width:480px;padding:8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;font-size:.9rem;margin-bottom:8px;display:block;"
-                                  placeholder="<?php esc_attr_e('Votre message…','seliweb-view'); ?>"></textarea>
-                        <button type="submit" name="seliweb_envoyer_message"
-                                style="padding:8px 18px;background:var(--color-primary);color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:inherit;">
-                            <?php esc_html_e('Envoyer un message','seliweb-view'); ?>
-                        </button>
-                    </form>
+                    <?php if ( isset( $_GET['seliweb_message_envoye'] ) ) : ?>
+                        <div style="background:#edfaef;border-left:4px solid #1d6a4a;padding:10px 14px;margin-bottom:12px;border-radius:4px;font-size:.9rem;">
+                            <?php esc_html_e( 'Votre message a été envoyé.', 'seliweb-view' ); ?>
+                        </div>
+                    <?php else : ?>
+                        <form method="post" action="<?php echo esc_url( $page_url ); ?>" style="margin-bottom:12px;">
+                            <?php wp_nonce_field( 'seliweb_contact_' . $annonce_id, 'seliweb_contact_nonce' ); ?>
+                            <input type="hidden" name="annonce_id" value="<?php echo intval( $annonce_id ); ?>">
+                            <textarea name="message" rows="4" required
+                                      style="width:100%;max-width:480px;padding:8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;font-size:.9rem;margin-bottom:8px;display:block;"
+                                      placeholder="<?php esc_attr_e( 'Votre message…', 'seliweb-view' ); ?>"></textarea>
+                            <button type="submit" name="seliweb_envoyer_message"
+                                    style="padding:8px 18px;background:var(--color-primary);color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:inherit;">
+                                <?php esc_html_e( 'Envoyer un message', 'seliweb-view' ); ?>
+                            </button>
+                        </form>
                     <?php endif; ?>
 
-                    <?php if ($groupe_visiteur->contact_mail_visible && $detail->user_email) : ?>
-                        <p><?php esc_html_e('Email :','seliweb-view'); ?>
-                            <a href="mailto:<?php echo esc_attr($detail->user_email); ?>"><?php echo esc_html($detail->user_email); ?></a>
+                    <?php if ( $is_sel_annonceur ) : ?>
+
+                        <?php if ( $detail->prenom || $detail->nom ) : ?>
+                            <p><?php esc_html_e( 'Annonceur :', 'seliweb-view' ); ?>
+                                <?php echo esc_html( trim( $detail->prenom . ' ' . $detail->nom ) ); ?>
+                            </p>
+                        <?php endif; ?>
+                        <?php if ( $detail->numero_sel ) : ?>
+                            <p><?php esc_html_e( 'N° adhérent :', 'seliweb-view' ); ?>
+                                <?php echo esc_html( $detail->numero_sel ); ?>
+                            </p>
+                        <?php endif; ?>
+
+                    <?php else : ?>
+
+                        <?php if ( ! empty( $detail->show_adresse ) && ! empty( $detail->organisme ) ) : ?>
+                            <p><?php esc_html_e( 'Organisme :', 'seliweb-view' ); ?>
+                                <?php echo esc_html( $detail->organisme ); ?>
+                            </p>
+                        <?php endif; ?>
+
+                    <?php endif; ?>
+
+                    <?php if ( ! empty( $detail->show_email ) && $detail->user_email ) : ?>
+                        <p><?php esc_html_e( 'Email :', 'seliweb-view' ); ?>
+                            <a href="mailto:<?php echo esc_attr( $detail->user_email ); ?>"><?php echo esc_html( $detail->user_email ); ?></a>
                         </p>
                     <?php endif; ?>
-                    <?php if ($groupe_visiteur->contact_tel && $detail->telephone) : ?>
-                        <p><?php esc_html_e('Téléphone :','seliweb-view'); ?> <?php echo esc_html($detail->telephone); ?></p>
+                    <?php if ( ! empty( $detail->show_tel_portable ) && ! empty( $detail->tel_portable ) ) : ?>
+                        <p><?php esc_html_e( 'Tél. portable :', 'seliweb-view' ); ?>
+                            <?php echo esc_html( $detail->tel_portable ); ?>
+                        </p>
                     <?php endif; ?>
-                    <?php if ($groupe_visiteur->contact_adresse && $detail->adresse) : ?>
-                        <p><?php esc_html_e('Adresse :','seliweb-view'); ?> <?php echo esc_html($detail->adresse.($detail->ville?' — '.$detail->ville:'')); ?></p>
+                    <?php if ( ! empty( $detail->show_tel_fixe ) && ! empty( $detail->tel_fixe ) ) : ?>
+                        <p><?php esc_html_e( 'Tél. fixe :', 'seliweb-view' ); ?>
+                            <?php echo esc_html( $detail->tel_fixe ); ?>
+                        </p>
                     <?php endif; ?>
 
                 <?php endif; ?>
@@ -173,10 +207,8 @@ endif;
 
         </div>
 
-        <!-- Sidebar -->
         <aside id="swv-sidebar">
-            <?php if (is_active_sidebar('swv-sidebar')) dynamic_sidebar('swv-sidebar'); ?>
+            <?php if ( is_active_sidebar( 'swv-sidebar' ) ) dynamic_sidebar( 'swv-sidebar' ); ?>
         </aside>
-
     </div>
 </main>

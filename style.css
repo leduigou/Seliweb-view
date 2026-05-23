@@ -582,13 +582,6 @@ img { max-width: 100%; height: auto; display: block; }
 
 .swv-card-don { color: #1d6a4a; }
 
-/* Dernière annonce seule dans sa rangée : centrée */
-.swv-cols-2 .swv-card:last-child:nth-child(2n+1) { grid-column-start: 1; }
-.swv-cols-3 .swv-card:last-child:nth-child(3n+1) { grid-column-start: 2; }
-.swv-cols-4 .swv-card:last-child:nth-child(4n+1) { grid-column-start: 2; }
-/* Deux dernières annonces dans une rangée de 3 : démarrer en colonne 1 (normal) */
-.swv-cols-3 .swv-card:last-child:nth-child(3n+2),
-.swv-cols-3 .swv-card:nth-last-child(2):nth-child(3n+2) { grid-column-start: 1; }
 
 .swv-card-prix-item { white-space: nowrap; }
 
