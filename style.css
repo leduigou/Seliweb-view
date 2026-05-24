@@ -564,10 +564,10 @@ img { max-width: 100%; height: auto; display: block; }
 .swv-tag-type    { background: #e8f0fe; color: #1a56a0; }
 .swv-tag-rubrique{ background: #fef3e2; color: #8a5100; }
 
-.swv-card-urgent {
+.swv-card-statut {
     display: inline-block;
     font-weight: 700;
-    color: #b32d2e;
+    color: #5a5a9a;
     font-size: .85rem;
     margin-bottom: 4px;
 }

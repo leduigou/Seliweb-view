@@ -195,6 +195,45 @@ function swv_enqueue() {
 add_action( 'wp_enqueue_scripts', 'swv_enqueue' );
 
 // ================================================================
+// FILTRE MENU PRINCIPAL
+// — Masque Connexion et Inscription en permanence
+// — Masque Mon Compte si non connecté
+// ================================================================
+function swv_filter_primary_menu( $items, $args ) {
+    if ( ! isset( $args->theme_location ) || $args->theme_location !== 'primary' ) {
+        return $items;
+    }
+    global $wpdb;
+
+    $login_id = (int) $wpdb->get_var(
+        "SELECT ID FROM {$wpdb->posts}
+         WHERE post_status='publish' AND post_type='page'
+           AND post_content LIKE '%seliweb_login%' LIMIT 1"
+    );
+    $compte_id = (int) $wpdb->get_var(
+        "SELECT ID FROM {$wpdb->posts}
+         WHERE post_status='publish' AND post_type='page'
+           AND post_content LIKE '%seliweb_mon_compte%' LIMIT 1"
+    );
+    $inscription = get_page_by_path( 'inscription-sel' );
+    $inscription_id = $inscription ? (int) $inscription->ID : 0;
+
+    $logged_in = is_user_logged_in();
+
+    foreach ( $items as $key => $item ) {
+        $page_id = (int) $item->object_id;
+        // Toujours masquer Connexion et Inscription
+        if ( $login_id      && $page_id === $login_id )      { unset( $items[$key] ); continue; }
+        if ( $inscription_id && $page_id === $inscription_id ) { unset( $items[$key] ); continue; }
+        // Masquer Mon Compte si non connecté
+        if ( $compte_id && $page_id === $compte_id && ! $logged_in ) { unset( $items[$key] ); }
+    }
+
+    return $items;
+}
+add_filter( 'wp_nav_menu_objects', 'swv_filter_primary_menu', 10, 2 );
+
+// ================================================================
 // HELPERS TEMPLATE
 // ================================================================
 function swv_annonces_page_url() {
@@ -405,7 +444,7 @@ function swv_render_card($annonce, $mode=null) {
     if ($mode===null) $mode = swv_display_mode();
 
     $prix      = Seliweb_Annonces::get_prix($annonce->id);
-    $is_urgent = ($annonce->statut_slug==='urgent');
+    $has_statut = ( ! empty( $annonce->statut_slug ) && $annonce->statut_slug !== 'expire' );
     $url       = add_query_arg('seliweb_annonce',$annonce->id,swv_annonces_page_url());
     $date      = date_i18n(get_option('date_format'),strtotime($annonce->date_creation));
 
@@ -424,7 +463,7 @@ function swv_render_card($annonce, $mode=null) {
                 <div class="swv-card-id">#<?php echo intval($annonce->id); ?></div>
                 <div class="swv-card-title"><a href="<?php echo esc_url($url); ?>"><?php echo esc_html($annonce->titre); ?></a></div>
                 <div class="swv-card-date"><?php echo esc_html($date); ?></div>
-                <?php if ($is_urgent): ?><span class="swv-card-urgent"><?php esc_html_e('URGENT','seliweb-view'); ?></span><?php endif; ?>
+                <?php if ($has_statut): ?><span class="swv-card-statut"><?php echo esc_html($annonce->statut_nom); ?></span><?php endif; ?>
                 <div class="swv-card-prix">
                     <?php if ($annonce->est_don): ?>
                         <span class="swv-card-don"><?php esc_html_e('Don','seliweb-view'); ?></span>
@@ -464,7 +503,7 @@ function swv_render_card($annonce, $mode=null) {
                     <?php endif; ?>
                 </div>
                 <div class="swv-card-date"><?php echo esc_html($date); ?></div>
-                <?php if ($is_urgent): ?><span class="swv-card-urgent"><?php esc_html_e('URGENT','seliweb-view'); ?></span><?php endif; ?>
+                <?php if ($has_statut): ?><span class="swv-card-statut"><?php echo esc_html($annonce->statut_nom); ?></span><?php endif; ?>
                 <div class="swv-card-prix">
                     <?php if ($annonce->est_don): ?>
                         <span class="swv-card-don"><?php esc_html_e('Don','seliweb-view'); ?></span>

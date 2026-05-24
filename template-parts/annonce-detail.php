@@ -23,7 +23,9 @@ $is_sel_annonceur = false;
 if ( $detail ) {
     $detail->cat_nom    = $wpdb->get_var( $wpdb->prepare( "SELECT nom FROM $tc WHERE id=%d", intval( $detail->categorie_id ) ) );
     $detail->rub_nom    = $wpdb->get_var( $wpdb->prepare( "SELECT nom FROM $tr WHERE id=%d", intval( $detail->rubrique_id ) ) );
-    $detail->statut_slug = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM $ts WHERE id=%d", intval( $detail->statut_id ) ) );
+    $st_row = $detail->statut_id ? $wpdb->get_row( $wpdb->prepare( "SELECT slug, nom FROM $ts WHERE id=%d", intval( $detail->statut_id ) ) ) : null;
+    $detail->statut_slug = $st_row ? $st_row->slug : null;
+    $detail->statut_nom  = $st_row ? $st_row->nom  : null;
 
     $membre = $wpdb->get_row( $wpdb->prepare(
         "SELECT tel_portable, tel_fixe, adresse1, adresse2, ville, code_postal,
@@ -93,8 +95,8 @@ $retour_url  = $retour_page > 1 ? add_query_arg( 'sel_page', $retour_page, $page
                 <?php if ( $detail->rub_nom ) : ?>
                     <span class="swv-tag swv-tag-rubrique"><?php echo esc_html( $detail->rub_nom ); ?></span>
                 <?php endif; ?>
-                <?php if ( $detail->statut_slug === 'urgent' ) : ?>
-                    <span class="swv-card-urgent"><?php esc_html_e( 'URGENT', 'seliweb-view' ); ?></span>
+                <?php if ( $detail->statut_slug && $detail->statut_slug !== 'expire' ) : ?>
+                    <span class="swv-card-statut"><?php echo esc_html( $detail->statut_nom ); ?></span>
                 <?php endif; ?>
             </div>
 

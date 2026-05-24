@@ -25,6 +25,8 @@ $compte_page_id = $wpdb->get_var(
      WHERE post_status='publish' AND post_type='page'
        AND post_content LIKE '%seliweb_mon_compte%' LIMIT 1"
 );
+$inscription_page = get_page_by_path( 'inscription-sel' );
+$inscription_url  = $inscription_page ? get_permalink( $inscription_page->ID ) : wp_registration_url();
 
 if ( is_user_logged_in() ) {
     // Connecté : lien vers Mon compte + bouton déconnexion
@@ -87,6 +89,13 @@ if ( is_user_logged_in() ) {
                    onmouseover="this.style.color='#fff'"
                    onmouseout="this.style.color='rgba(255,255,255,.65)'">
                     <?php esc_html_e('Déconnexion','seliweb-view'); ?>
+                </a>
+            <?php elseif ( get_option('users_can_register') ) : ?>
+                <a href="<?php echo esc_url( $inscription_url ); ?>"
+                   style="font-size:.72rem;color:rgba(255,255,255,.65);text-decoration:none;"
+                   onmouseover="this.style.color='#fff'"
+                   onmouseout="this.style.color='rgba(255,255,255,.65)'">
+                    <?php esc_html_e("S'inscrire",'seliweb-view'); ?>
                 </a>
             <?php endif; ?>
         </div>
