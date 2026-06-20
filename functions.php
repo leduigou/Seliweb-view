@@ -462,7 +462,7 @@ function swv_render_card($annonce, $mode=null) {
             <div class="swv-card-body">
                 <div class="swv-card-id">#<?php echo intval($annonce->id); ?></div>
                 <div class="swv-card-title"><a href="<?php echo esc_url($url); ?>"><?php echo esc_html($annonce->titre); ?></a></div>
-                <div class="swv-card-date"><?php echo esc_html($date); ?></div>
+                <div class="swv-card-date"><?php echo esc_html__('Publié le','seliweb-view') . ' ' . esc_html($date); ?></div>
                 <?php if ($has_statut): ?><span class="swv-card-statut"><?php echo esc_html($annonce->statut_nom); ?></span><?php endif; ?>
                 <div class="swv-card-prix">
                     <?php if ($annonce->est_don): ?>
@@ -502,7 +502,7 @@ function swv_render_card($annonce, $mode=null) {
                         <span class="swv-tag swv-tag-rubrique"><?php echo esc_html($annonce->rub_nom); ?></span>
                     <?php endif; ?>
                 </div>
-                <div class="swv-card-date"><?php echo esc_html($date); ?></div>
+                <div class="swv-card-date"><?php echo esc_html__('Publié le','seliweb-view') . ' ' . esc_html($date); ?></div>
                 <?php if ($has_statut): ?><span class="swv-card-statut"><?php echo esc_html($annonce->statut_nom); ?></span><?php endif; ?>
                 <div class="swv-card-prix">
                     <?php if ($annonce->est_don): ?>
