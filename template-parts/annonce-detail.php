@@ -21,7 +21,9 @@ $membre           = null;
 $is_sel_annonceur = false;
 
 if ( $detail ) {
-    $detail->cat_nom    = $wpdb->get_var( $wpdb->prepare( "SELECT nom FROM $tc WHERE id=%d", intval( $detail->categorie_id ) ) );
+    $cat_row = $wpdb->get_row( $wpdb->prepare( "SELECT nom, slug FROM $tc WHERE id=%d", intval( $detail->categorie_id ) ) );
+    $detail->cat_nom    = $cat_row ? $cat_row->nom  : '';
+    $detail->cat_slug   = $cat_row ? $cat_row->slug : '';
     $detail->rub_nom    = $wpdb->get_var( $wpdb->prepare( "SELECT nom FROM $tr WHERE id=%d", intval( $detail->rubrique_id ) ) );
     $st_row = $detail->statut_id ? $wpdb->get_row( $wpdb->prepare( "SELECT slug, nom FROM $ts WHERE id=%d", intval( $detail->statut_id ) ) ) : null;
     $detail->statut_slug = $st_row ? $st_row->slug : null;
