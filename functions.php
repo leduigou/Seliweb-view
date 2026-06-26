@@ -30,6 +30,17 @@ function swv_display_mode() { return swv_opt('display_mode'); }
 function swv_grid_cols()    { return intval( swv_opt('grid_cols') ); }
 function swv_color()        { return swv_opt('color_primary'); }
 
+function swv_login_page_url( $redirect = '' ) {
+    global $wpdb;
+    $id = $wpdb->get_var(
+        "SELECT ID FROM {$wpdb->posts}
+         WHERE post_status='publish' AND post_type='page'
+         AND post_content LIKE '%seliweb_login%' LIMIT 1"
+    );
+    $base = $id ? get_permalink( $id ) : wp_login_url();
+    return $redirect ? add_query_arg( 'redirect_to', urlencode( $redirect ), $base ) : $base;
+}
+
 // Pont vers le plugin : swv_render_card() utilise apply_filters('seliweb_display_mode', 'grille')
 // ce filtre permet au thème d'imposer le mode choisi dans le Customizer.
 add_filter( 'seliweb_display_mode', 'swv_display_mode' );
