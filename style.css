@@ -785,6 +785,12 @@ img { max-width: 100%; height: auto; display: block; }
 .swv-carousel-prev:hover,
 .swv-carousel-next:hover { background: #fff; }
 
+.swv-carousel-count {
+    font-size: .82rem;
+    color: #888;
+    margin: 6px 0 20px;
+}
+
 .swv-detail-texte {
     font-size: .95rem;
     line-height: 1.75;
