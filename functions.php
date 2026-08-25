@@ -28,38 +28,26 @@ function swv_color() { return swv_opt('color_primary'); }
 // ================================================================
 // CUSTOMIZER
 // ================================================================
-function swv_customizer( $wp_customize ) {
-
-    // ---- Couleur principale (dans la section "Couleurs" native) --
-    $wp_customize->add_setting( 'swv_color_primary', array(
-        'default'           => '#1d6a4a',
-        'sanitize_callback' => 'sanitize_hex_color',
-        'transport'         => 'postMessage', // mise à jour en temps réel
-    ) );
-    $wp_customize->add_control( new WP_Customize_Color_Control(
-        $wp_customize,
-        'swv_color_primary',
-        array(
-            'label'   => __( 'Couleur principale du thème', 'seliweb-view' ),
-            'section' => 'colors',
-        )
-    ) );
-
-    // ---- Couleur — Navigation principale --------------------------
-    $wp_customize->add_setting( 'swv_color_nav_bg', array(
-        'default'           => '',
+function swv_add_color_setting( $wp_customize, $id, $label, $default, $description = '' ) {
+    $wp_customize->add_setting( $id, array(
+        'default'           => $default,
         'sanitize_callback' => 'sanitize_hex_color',
         'transport'         => 'postMessage',
     ) );
-    $wp_customize->add_control( new WP_Customize_Color_Control(
-        $wp_customize,
-        'swv_color_nav_bg',
-        array(
-            'label'       => __( 'Couleur — Navigation principale', 'seliweb-view' ),
-            'description' => __( 'Par défaut, dérivée automatiquement de la couleur principale.', 'seliweb-view' ),
-            'section'     => 'colors',
-        )
-    ) );
+    $args = array( 'label' => $label, 'section' => 'colors' );
+    if ( $description ) $args['description'] = $description;
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, $id, $args ) );
+}
+
+function swv_customizer( $wp_customize ) {
+    $derive = __( 'Par défaut, dérivée automatiquement de la couleur du bandeau.', 'seliweb-view' );
+
+    swv_add_color_setting( $wp_customize, 'swv_color_primary',   __( 'Couleur du bandeau', 'seliweb-view' ), '#1d6a4a' );
+    swv_add_color_setting( $wp_customize, 'swv_color_nav_bg',    __( 'Couleur — Navigation principale', 'seliweb-view' ), '', $derive );
+    swv_add_color_setting( $wp_customize, 'swv_color_footer_bg', __( 'Couleur du pied de page', 'seliweb-view' ), '', $derive );
+    swv_add_color_setting( $wp_customize, 'swv_color_nav_text',  __( 'Couleur du texte des menus', 'seliweb-view' ), '' );
+    swv_add_color_setting( $wp_customize, 'swv_color_h1',        __( 'Couleur des titres H1', 'seliweb-view' ), '' );
+    swv_add_color_setting( $wp_customize, 'swv_color_h2',        __( 'Couleur des titres H2', 'seliweb-view' ), '' );
 }
 add_action( 'customize_register', 'swv_customizer' );
 
@@ -69,8 +57,21 @@ add_action( 'customize_register', 'swv_customizer' );
 function swv_dynamic_css() {
     $color  = swv_color();
     $dark   = swv_darken_hex( $color, 20 );
+
     $nav_bg = get_theme_mod( 'swv_color_nav_bg', '' );
     if ( ! $nav_bg ) $nav_bg = $dark;
+
+    $footer_bg = get_theme_mod( 'swv_color_footer_bg', '' );
+    if ( ! $footer_bg ) $footer_bg = $dark;
+
+    $nav_text = get_theme_mod( 'swv_color_nav_text', '' );
+    if ( ! $nav_text ) $nav_text = 'rgba(255,255,255,.85)';
+
+    $h1_color = get_theme_mod( 'swv_color_h1', '' );
+    if ( ! $h1_color ) $h1_color = $color;
+
+    $h2_color = get_theme_mod( 'swv_color_h2', '' );
+    if ( ! $h2_color ) $h2_color = '#222';
 
     $header_textcolor = get_header_textcolor();
     $header_text = ( $header_textcolor && $header_textcolor !== 'blank' ) ? '#' . $header_textcolor : 'var(--color-white)';
@@ -80,9 +81,12 @@ function swv_dynamic_css() {
         --color-primary:     ' . esc_attr($color)       . ';
         --color-primary-dk:  ' . esc_attr($dark)         . ';
         --color-header-bg:   ' . esc_attr($color)        . ';
-        --color-footer-bg:   ' . esc_attr($dark)         . ';
+        --color-footer-bg:   ' . esc_attr($footer_bg)    . ';
         --color-nav-bg:      ' . esc_attr($nav_bg)       . ';
+        --color-nav-text:    ' . esc_attr($nav_text)     . ';
         --color-header-text: ' . esc_attr($header_text)  . ';
+        --color-h1:          ' . esc_attr($h1_color)     . ';
+        --color-h2:          ' . esc_attr($h2_color)     . ';
     }
     </style>' . "\n";
 }
@@ -93,20 +97,26 @@ add_action( 'wp_head', 'swv_dynamic_css' );
 // garantir que wp.customize existe déjà quand ce code s'exécute.
 function swv_customizer_live() {
     $js = "
-    wp.customize('swv_color_primary', function(v){
-        v.bind(function(color){
-            var style = document.getElementById('swv-live-color');
-            if (!style) { style = document.createElement('style'); style.id = 'swv-live-color'; document.head.appendChild(style); }
-            style.textContent = ':root { --color-primary:'+color+'; --color-header-bg:'+color+'; }';
+    function swvBindColor(id, vars){
+        wp.customize(id, function(v){
+            v.bind(function(color){
+                var styleId = 'swv-live-' + id;
+                var style = document.getElementById(styleId);
+                if (!style) { style = document.createElement('style'); style.id = styleId; document.head.appendChild(style); }
+                if (!color) return;
+                var css = ':root {';
+                vars.forEach(function(name){ css += name + ':' + color + ';'; });
+                css += '}';
+                style.textContent = css;
+            });
         });
-    });
-    wp.customize('swv_color_nav_bg', function(v){
-        v.bind(function(color){
-            var style = document.getElementById('swv-live-color-nav');
-            if (!style) { style = document.createElement('style'); style.id = 'swv-live-color-nav'; document.head.appendChild(style); }
-            if (color) style.textContent = ':root { --color-nav-bg:'+color+'; }';
-        });
-    });
+    }
+    swvBindColor('swv_color_primary',   ['--color-primary', '--color-header-bg']);
+    swvBindColor('swv_color_nav_bg',    ['--color-nav-bg']);
+    swvBindColor('swv_color_footer_bg', ['--color-footer-bg']);
+    swvBindColor('swv_color_nav_text',  ['--color-nav-text']);
+    swvBindColor('swv_color_h1',        ['--color-h1']);
+    swvBindColor('swv_color_h2',        ['--color-h2']);
     ";
     wp_add_inline_script( 'customize-preview', $js );
 }

@@ -2,7 +2,7 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.8.0
+Version: 0.8.1
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
 */
@@ -25,7 +25,10 @@ Text Domain: seliweb-view
     --color-header-bg:  #1d6a4a;
     --color-footer-bg:  #134d35;
     --color-nav-bg:      #134d35;
+    --color-nav-text:    rgba(255,255,255,.85);
     --color-header-text: #fff;
+    --color-h1:          #1d6a4a;
+    --color-h2:          #222;
     --color-tag-cat-bg:      #e0ede7;
     --color-tag-cat-text:    #1d6a4a;
     --color-tag-type-bg:     #e8f0fe;
@@ -209,7 +212,7 @@ img { max-width: 100%; height: auto; display: block; }
 #swv-nav ul li a {
     display: block;
     padding: 10px 14px;
-    color: rgba(255,255,255,.85);
+    color: var(--color-nav-text);
     font-size: .9rem;
     font-weight: 500;
     border-radius: 3px;
@@ -317,8 +320,6 @@ img { max-width: 100%; height: auto; display: block; }
 .swv-page-info {
     font-size: .85rem;
     color: var(--color-text-soft);
-    flex: 1;
-    min-width: 160px;
 }
 
 .swv-bar-controls {
@@ -723,6 +724,8 @@ img { max-width: 100%; height: auto; display: block; }
     font-family: var(--font-title);
     margin-bottom: .6em;
 }
+.swv-content h1 { color: var(--color-h1); }
+.swv-content h2 { color: var(--color-h2); }
 
 .swv-content p { margin-bottom: 1em; }
 
@@ -833,7 +836,7 @@ img { max-width: 100%; height: auto; display: block; }
 .swv-category-wrap h1 {
     font-family: var(--font-title);
     font-size: 2rem;
-    color: var(--color-primary);
+    color: var(--color-h1);
     margin-bottom: 20px;
     text-align: center;
 }
@@ -859,7 +862,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .swv-post-item h2 a {
-    color: var(--color-text);
+    color: var(--color-h2);
     text-decoration: none;
 }
 
