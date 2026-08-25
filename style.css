@@ -2,7 +2,7 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.7.6
+Version: 0.8.0
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
 */
@@ -24,6 +24,16 @@ Text Domain: seliweb-view
     --color-white:      #fff;
     --color-header-bg:  #1d6a4a;
     --color-footer-bg:  #134d35;
+    --color-nav-bg:      #134d35;
+    --color-header-text: #fff;
+    --color-tag-cat-bg:      #e0ede7;
+    --color-tag-cat-text:    #1d6a4a;
+    --color-tag-type-bg:     #e8f0fe;
+    --color-tag-type-text:   #1a56a0;
+    --color-tag-rubrique-bg: #fef3e2;
+    --color-tag-rubrique-text: #8a5100;
+    --color-statut:      #5a5a9a;
+    --color-don:         #1d6a4a;
     --radius:           6px;
     --shadow:           0 2px 10px rgba(0,0,0,.08);
     --container:        1200px;
@@ -104,21 +114,21 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .swv-site-logo img {
-    height: 72px;
+    height: 96px;
     width: auto;
     border-radius: var(--radius);
 }
 
 .swv-site-logo-placeholder {
-    width: 72px;
-    height: 72px;
+    width: 96px;
+    height: 96px;
     background: rgba(255,255,255,.15);
     border: 2px solid rgba(255,255,255,.3);
     border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 36px;
     color: rgba(255,255,255,.7);
 }
 
@@ -126,14 +136,15 @@ img { max-width: 100%; height: auto; display: block; }
     font-family: var(--font-title);
     font-size: clamp(1.4rem, 3vw, 2.2rem);
     font-weight: 700;
-    color: var(--color-white);
+    color: var(--color-header-text);
     line-height: 1.2;
     text-shadow: 0 1px 3px rgba(0,0,0,.3);
 }
 
 .swv-site-desc {
     font-size: .9rem;
-    color: rgba(255,255,255,.75);
+    color: var(--color-header-text);
+    opacity: .75;
     margin-top: 4px;
 }
 
@@ -175,7 +186,7 @@ img { max-width: 100%; height: auto; display: block; }
    NAVIGATION PRINCIPALE (optionnelle)
    ================================================================ */
 #swv-nav {
-    background: var(--color-primary-dk);
+    background: var(--color-nav-bg);
     border-bottom: 2px solid var(--color-accent);
 }
 
@@ -560,14 +571,14 @@ img { max-width: 100%; height: auto; display: block; }
     font-weight: 600;
     letter-spacing: .02em;
 }
-.swv-tag-cat     { background: #e0ede7; color: #1d6a4a; }
-.swv-tag-type    { background: #e8f0fe; color: #1a56a0; }
-.swv-tag-rubrique{ background: #fef3e2; color: #8a5100; }
+.swv-tag-cat     { background: var(--color-tag-cat-bg);      color: var(--color-tag-cat-text); }
+.swv-tag-type    { background: var(--color-tag-type-bg);     color: var(--color-tag-type-text); }
+.swv-tag-rubrique{ background: var(--color-tag-rubrique-bg); color: var(--color-tag-rubrique-text); }
 
 .swv-card-statut {
     display: inline-block;
     font-weight: 700;
-    color: #5a5a9a;
+    color: var(--color-statut);
     font-size: .85rem;
     margin-bottom: 4px;
 }
@@ -580,7 +591,7 @@ img { max-width: 100%; height: auto; display: block; }
     padding-top: 6px;
 }
 
-.swv-card-don { color: #1d6a4a; }
+.swv-card-don { color: var(--color-don); }
 
 
 .swv-card-prix-item { white-space: nowrap; }

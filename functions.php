@@ -16,71 +16,21 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // ================================================================
 function swv_opt( $key, $default = null ) {
     $defaults = array(
-        'display_mode' => 'grille',
-        'grid_cols'    => 3,
-        'per_page'     => 12,
-        'color_primary'=> '#1d6a4a',
+        'color_primary' => '#1d6a4a',
     );
     $d = $default !== null ? $default : ( $defaults[ $key ] ?? null );
     return get_theme_mod( 'swv_' . $key, $d );
 }
 
-// Raccourcis utilisés dans les templates
-function swv_display_mode() { return swv_opt('display_mode'); }
-function swv_grid_cols()    { return intval( swv_opt('grid_cols') ); }
-function swv_color()        { return swv_opt('color_primary'); }
-
-// Pont vers le plugin : les templates fournis par le plugin lisent le mode
-// d'affichage et le nombre de colonnes via ces filtres, ce qui permet au
-// thème d'imposer les valeurs choisies dans le Customizer sans dépendance
-// directe du plugin envers des fonctions du thème.
-add_filter( 'seliweb_display_mode', 'swv_display_mode' );
-add_filter( 'seliweb_grid_cols',    'swv_grid_cols' );
+// Raccourci utilisé dans les templates
+function swv_color() { return swv_opt('color_primary'); }
 
 // ================================================================
 // CUSTOMIZER
 // ================================================================
 function swv_customizer( $wp_customize ) {
 
-    // ---- Section ------------------------------------------------
-    $wp_customize->add_section( 'swv_settings', array(
-        'title'    => __( 'Seliweb View', 'seliweb-view' ),
-        'priority' => 30,
-    ) );
-
-    // ---- Mode d'affichage --------------------------------------
-    $wp_customize->add_setting( 'swv_display_mode', array(
-        'default'           => 'grille',
-        'sanitize_callback' => function($v){ return in_array($v,array('liste','grille')) ? $v : 'grille'; },
-    ) );
-    $wp_customize->add_control( 'swv_display_mode', array(
-        'label'   => __( 'Mode d\'affichage des annonces', 'seliweb-view' ),
-        'section' => 'swv_settings',
-        'type'    => 'radio',
-        'choices' => array(
-            'grille' => __( 'Grille (colonnes)', 'seliweb-view' ),
-            'liste'  => __( 'Liste',             'seliweb-view' ),
-        ),
-    ) );
-
-    // ---- Nombre de colonnes ------------------------------------
-    $wp_customize->add_setting( 'swv_grid_cols', array(
-        'default'           => 3,
-        'sanitize_callback' => 'absint',
-    ) );
-    $wp_customize->add_control( 'swv_grid_cols', array(
-        'label'       => __( 'Colonnes en mode grille', 'seliweb-view' ),
-        'description' => __( 'Ignoré en mode liste.', 'seliweb-view' ),
-        'section'     => 'swv_settings',
-        'type'        => 'select',
-        'choices'     => array(
-            2 => __( '2 colonnes', 'seliweb-view' ),
-            3 => __( '3 colonnes', 'seliweb-view' ),
-            4 => __( '4 colonnes', 'seliweb-view' ),
-        ),
-    ) );
-
-    // ---- Couleur principale ------------------------------------
+    // ---- Couleur principale (dans la section "Couleurs" native) --
     $wp_customize->add_setting( 'swv_color_primary', array(
         'default'           => '#1d6a4a',
         'sanitize_callback' => 'sanitize_hex_color',
@@ -91,7 +41,23 @@ function swv_customizer( $wp_customize ) {
         'swv_color_primary',
         array(
             'label'   => __( 'Couleur principale du thème', 'seliweb-view' ),
-            'section' => 'swv_settings',
+            'section' => 'colors',
+        )
+    ) );
+
+    // ---- Couleur — Navigation principale --------------------------
+    $wp_customize->add_setting( 'swv_color_nav_bg', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'postMessage',
+    ) );
+    $wp_customize->add_control( new WP_Customize_Color_Control(
+        $wp_customize,
+        'swv_color_nav_bg',
+        array(
+            'label'       => __( 'Couleur — Navigation principale', 'seliweb-view' ),
+            'description' => __( 'Par défaut, dérivée automatiquement de la couleur principale.', 'seliweb-view' ),
+            'section'     => 'colors',
         )
     ) );
 }
@@ -101,23 +67,32 @@ add_action( 'customize_register', 'swv_customizer' );
 // CSS DYNAMIQUE — injecte la couleur choisie dans des variables CSS
 // ================================================================
 function swv_dynamic_css() {
-    $color = swv_color();
-    $dark  = swv_darken_hex( $color, 20 );
+    $color  = swv_color();
+    $dark   = swv_darken_hex( $color, 20 );
+    $nav_bg = get_theme_mod( 'swv_color_nav_bg', '' );
+    if ( ! $nav_bg ) $nav_bg = $dark;
+
+    $header_textcolor = get_header_textcolor();
+    $header_text = ( $header_textcolor && $header_textcolor !== 'blank' ) ? '#' . $header_textcolor : 'var(--color-white)';
+
     echo '<style id="swv-dynamic-css">
     :root {
-        --color-primary:    ' . esc_attr($color) . ';
-        --color-primary-dk: ' . esc_attr($dark)  . ';
-        --color-header-bg:  ' . esc_attr($color) . ';
-        --color-footer-bg:  ' . esc_attr($dark)  . ';
+        --color-primary:     ' . esc_attr($color)       . ';
+        --color-primary-dk:  ' . esc_attr($dark)         . ';
+        --color-header-bg:   ' . esc_attr($color)        . ';
+        --color-footer-bg:   ' . esc_attr($dark)         . ';
+        --color-nav-bg:      ' . esc_attr($nav_bg)       . ';
+        --color-header-text: ' . esc_attr($header_text)  . ';
     }
     </style>' . "\n";
 }
 add_action( 'wp_head', 'swv_dynamic_css' );
 
 // Mise à jour temps réel dans le Customizer (postMessage)
-function swv_customizer_live() { ?>
-<script>
-(function($){
+// Attaché en dépendance de 'customize-preview' (plutôt qu'à wp_footer) pour
+// garantir que wp.customize existe déjà quand ce code s'exécute.
+function swv_customizer_live() {
+    $js = "
     wp.customize('swv_color_primary', function(v){
         v.bind(function(color){
             var style = document.getElementById('swv-live-color');
@@ -125,12 +100,17 @@ function swv_customizer_live() { ?>
             style.textContent = ':root { --color-primary:'+color+'; --color-header-bg:'+color+'; }';
         });
     });
-}(jQuery));
-</script>
-<?php }
-add_action( 'customize_preview_init', function(){
-    add_action( 'wp_footer', 'swv_customizer_live' );
-} );
+    wp.customize('swv_color_nav_bg', function(v){
+        v.bind(function(color){
+            var style = document.getElementById('swv-live-color-nav');
+            if (!style) { style = document.createElement('style'); style.id = 'swv-live-color-nav'; document.head.appendChild(style); }
+            if (color) style.textContent = ':root { --color-nav-bg:'+color+'; }';
+        });
+    });
+    ";
+    wp_add_inline_script( 'customize-preview', $js );
+}
+add_action( 'customize_preview_init', 'swv_customizer_live' );
 
 // ================================================================
 // HELPER : assombrir une couleur hex
@@ -154,8 +134,8 @@ function swv_setup() {
     add_theme_support( 'title-tag' );
     add_theme_support( 'post-thumbnails' );
     add_theme_support( 'custom-logo', array(
-        'height'      => 80,
-        'width'       => 200,
+        'height'      => 96,
+        'width'       => 240,
         'flex-height' => true,
         'flex-width'  => true,
     ) );
