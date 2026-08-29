@@ -2,7 +2,7 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.8.1
+Version: 0.8.3
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
 */
@@ -289,6 +289,73 @@ img { max-width: 100%; height: auto; display: block; }
     transition: border-color .15s;
 }
 .swv-reset-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* ----------------------------------------------------------------
+   Recherche d'annonces (titre + texte) — champ swv_render_search_box()
+   et variante intégrée à la barre de filtres (.swv-search-q)
+   ---------------------------------------------------------------- */
+.swv-searchbox,
+.swv-search-q {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.swv-searchbox-input,
+.swv-search-q-input {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-size: .9rem;
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-width: 180px;
+}
+.swv-searchbox-input:focus,
+.swv-search-q-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.swv-searchbox-btn {
+    padding: 8px 18px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+}
+.swv-searchbox-btn:hover { background: var(--color-primary-dk); }
+
+/* Variante « barre de filtres » : rejetée à droite de la rangée */
+.swv-search-q { margin-left: auto; }
+
+/* Variante « barre liste / colonnes » : compacte */
+.swv-searchbox-bar .swv-searchbox-input { min-width: 150px; }
+
+/* Variante widget (barre latérale) : empilée */
+.swv-searchbox-widget { flex-wrap: wrap; }
+.swv-searchbox-widget .swv-searchbox-input { flex: 1 1 100%; min-width: 0; }
+.swv-searchbox-widget .swv-searchbox-btn { width: 100%; }
+
+.swv-annonces-empty-search {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+@media (max-width: 782px) {
+    .swv-search-q { margin-left: 0; width: 100%; }
+    .swv-searchbox-bar { width: 100%; }
+    .swv-search-q-input,
+    .swv-searchbox-bar .swv-searchbox-input { flex: 1; min-width: 0; }
+}
 
 /* ================================================================
    BARRE PAGINATION
@@ -682,6 +749,12 @@ img { max-width: 100%; height: auto; display: block; }
     text-transform: uppercase;
     letter-spacing: .06em;
     margin-bottom: 10px;
+}
+
+/* Aperçu de la personnalisation : garder une zone cliquable pour le
+   crayon d'édition même quand le titre de la colonne est vide. */
+.customize-partial-edit-shortcuts-shown .swv-footer-menu-title {
+    min-height: 1.4em;
 }
 
 .swv-footer-menu ul { list-style: none; }

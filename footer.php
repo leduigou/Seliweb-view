@@ -3,23 +3,21 @@
 
         <div class="swv-footer-menus">
             <?php
-            $footer_menus = array(
-                'footer-1' => __( 'Informations', 'seliweb-view' ),
-                'footer-2' => __( 'Le SEL', 'seliweb-view' ),
-                'footer-3' => __( 'Contact', 'seliweb-view' ),
-            );
-            foreach ( $footer_menus as $location => $default_title ) :
-                if ( has_nav_menu( $location ) ) : ?>
-                    <div class="swv-footer-menu">
-                        <h4><?php echo esc_html( $default_title ); ?></h4>
-                        <?php wp_nav_menu( array(
-                            'theme_location' => $location,
-                            'container'      => false,
-                            'depth'          => 1,
-                        ) ); ?>
+            $swv_col = 0;
+            foreach ( swv_footer_menus() as $location => $conf ) :
+                $swv_col++;
+                if ( ! has_nav_menu( $location ) ) continue; ?>
+                <div class="swv-footer-menu">
+                    <div class="swv-footer-menu-title swv-footer-menu-title-<?php echo (int) $swv_col; ?>">
+                        <?php echo swv_footer_menu_title_html( $conf['mod'] ); // <h4> déjà échappé ?>
                     </div>
-                <?php endif;
-            endforeach; ?>
+                    <?php wp_nav_menu( array(
+                        'theme_location' => $location,
+                        'container'      => false,
+                        'depth'          => 1,
+                    ) ); ?>
+                </div>
+            <?php endforeach; ?>
         </div>
 
         <div class="swv-footer-bottom">
