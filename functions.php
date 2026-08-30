@@ -43,6 +43,12 @@ function swv_footer_menu_title_html( $mod_key ) {
     return $titre !== '' ? '<h4>' . esc_html( $titre ) . '</h4>' : '';
 }
 
+// Alignement des colonnes de menus du pied de page : left | center | right.
+function swv_footer_align() {
+    $v = get_theme_mod( 'swv_footer_align', 'center' );
+    return in_array( $v, array( 'left', 'center', 'right' ), true ) ? $v : 'center';
+}
+
 // ================================================================
 // CUSTOMIZER
 // ================================================================
@@ -106,6 +112,25 @@ function swv_customizer( $wp_customize ) {
             ) );
         }
     }
+
+    // --- Pied de page : alignement des colonnes de menus ---
+    $wp_customize->add_setting( 'swv_footer_align', array(
+        'default'           => 'center',
+        'sanitize_callback' => function ( $v ) {
+            return in_array( $v, array( 'left', 'center', 'right' ), true ) ? $v : 'center';
+        },
+        'transport'         => 'refresh',
+    ) );
+    $wp_customize->add_control( 'swv_footer_align', array(
+        'label'       => __( 'Alignement des colonnes de menus', 'seliweb-view' ),
+        'section'     => 'swv_footer',
+        'type'        => 'radio',
+        'choices'     => array(
+            'left'   => __( 'À gauche', 'seliweb-view' ),
+            'center' => __( 'Au centre', 'seliweb-view' ),
+            'right'  => __( 'À droite', 'seliweb-view' ),
+        ),
+    ) );
 }
 add_action( 'customize_register', 'swv_customizer' );
 

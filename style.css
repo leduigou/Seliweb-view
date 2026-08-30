@@ -2,7 +2,7 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.8.3
+Version: 0.8.4
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
 */
@@ -737,9 +737,16 @@ img { max-width: 100%; height: auto; display: block; }
 .swv-footer-menus {
     display: flex;
     flex-wrap: wrap;
-    gap: 32px;
+    gap: 24px 56px;
     margin-bottom: 24px;
 }
+
+.swv-footer-menu { min-width: 150px; }
+
+/* Alignement du bloc de colonnes (réglage Personnaliser → Pied de page) */
+.swv-footer-menus--left   { justify-content: flex-start; }
+.swv-footer-menus--center { justify-content: center; }
+.swv-footer-menus--right  { justify-content: flex-end; }
 
 .swv-footer-menu h4 {
     font-family: var(--font-title);
@@ -953,6 +960,73 @@ img { max-width: 100%; height: auto; display: block; }
 .swv-post-excerpt {
     color: var(--color-text);
     line-height: 1.6;
+}
+
+/* ================================================================
+   FAQ — bloc « Détails » natif (questions repliables)
+   Fonctionne sur tout bloc Détails ; le motif « FAQ — questions
+   repliables » les regroupe dans .swv-faq.
+   ================================================================ */
+.wp-block-details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-white);
+    margin: 0 0 10px;
+    padding: 0 16px;
+    overflow: hidden;
+}
+
+.wp-block-details > summary {
+    margin: 0 -16px;
+    padding: 14px 44px 14px 16px;
+    position: relative;
+    list-style: none;
+    cursor: pointer;
+    font-family: var(--font-title);
+    font-weight: 700;
+    color: var(--color-primary);
+}
+.wp-block-details > summary::-webkit-details-marker { display: none; }
+.wp-block-details > summary:hover { background: var(--color-accent-lt); }
+.wp-block-details > summary:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+.wp-block-details > summary::after {
+    content: "";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform .15s ease;
+}
+.wp-block-details[open] > summary::after {
+    transform: translateY(-30%) rotate(225deg);
+}
+
+.wp-block-details[open] > summary {
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+.wp-block-details > *:not(summary) {
+    color: var(--color-text);
+    line-height: 1.6;
+}
+.wp-block-details > *:last-child { margin-bottom: 14px; }
+
+.swv-faq {
+    max-width: 760px;
+    margin: 0 auto;
+}
+.swv-faq > h2 {
+    font-family: var(--font-title);
+    color: var(--color-h1);
+    margin-bottom: 16px;
 }
 
 /* ================================================================

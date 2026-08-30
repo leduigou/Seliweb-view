@@ -1,7 +1,7 @@
 <footer id="swv-footer">
     <div class="swv-footer-inner">
 
-        <div class="swv-footer-menus">
+        <div class="swv-footer-menus swv-footer-menus--<?php echo esc_attr( swv_footer_align() ); ?>">
             <?php
             $swv_col = 0;
             foreach ( swv_footer_menus() as $location => $conf ) :
