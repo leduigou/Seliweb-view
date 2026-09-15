@@ -249,15 +249,9 @@ function swv_setup() {
         'footer-3' => __( 'Pied de page — colonne 3','seliweb-view' ),
     ) );
 
-    register_sidebar( array(
-        'name'          => __( 'Sidebar annonces', 'seliweb-view' ),
-        'id'            => 'swv-sidebar',
-        'description'   => __( 'Widgets affichés à droite des annonces.', 'seliweb-view' ),
-        'before_widget' => '<div class="swv-widget">',
-        'after_widget'  => '</div>',
-        'before_title'  => '<h3 class="swv-widget-title">',
-        'after_title'   => '</h3>',
-    ) );
+    // La barre latérale "swv-sidebar" (widgets à côté des annonces) est
+    // désormais enregistrée par le plugin (Seliweb::register) afin de
+    // fonctionner avec n'importe quel thème, pas seulement seliweb-view.
 }
 add_action( 'after_setup_theme', 'swv_setup' );
 
