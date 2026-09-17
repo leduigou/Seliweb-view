@@ -1,24 +1,19 @@
 <footer id="swv-footer">
     <div class="swv-footer-inner">
 
-        <div class="swv-footer-menus swv-footer-menus--<?php echo esc_attr( swv_footer_align() ); ?>">
-            <?php
-            $swv_col = 0;
-            foreach ( swv_footer_menus() as $location => $conf ) :
-                $swv_col++;
-                if ( ! has_nav_menu( $location ) ) continue; ?>
-                <div class="swv-footer-menu">
-                    <div class="swv-footer-menu-title swv-footer-menu-title-<?php echo (int) $swv_col; ?>">
-                        <?php echo swv_footer_menu_title_html( $conf['mod'] ); // <h4> déjà échappé ?>
+        <?php
+        $swv_footer_actives = array_filter( array( 1, 2, 3 ), function ( $i ) {
+            return is_active_sidebar( 'swv-footer-' . $i );
+        } );
+        if ( $swv_footer_actives ) : ?>
+            <div class="swv-footer-widgets">
+                <?php foreach ( $swv_footer_actives as $i ) : ?>
+                    <div class="swv-footer-widget-col">
+                        <?php dynamic_sidebar( 'swv-footer-' . $i ); ?>
                     </div>
-                    <?php wp_nav_menu( array(
-                        'theme_location' => $location,
-                        'container'      => false,
-                        'depth'          => 1,
-                    ) ); ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <div class="swv-footer-bottom">
             <span>

@@ -25,30 +25,6 @@ function swv_opt( $key, $default = null ) {
 // Raccourci utilisé dans les templates
 function swv_color() { return swv_opt('color_primary'); }
 
-// ---- Pied de page : titres des colonnes de menus ----
-// Clé de réglage (theme_mod) -> emplacement de menu + titre par défaut.
-function swv_footer_menus() {
-    return array(
-        'footer-1' => array( 'mod' => 'swv_footer_title_1', 'defaut' => __( 'Informations', 'seliweb-view' ) ),
-        'footer-2' => array( 'mod' => 'swv_footer_title_2', 'defaut' => __( 'Le SEL', 'seliweb-view' ) ),
-        'footer-3' => array( 'mod' => 'swv_footer_title_3', 'defaut' => __( 'Contact', 'seliweb-view' ) ),
-    );
-}
-
-// HTML du titre d'une colonne (<h4> ou chaîne vide si le titre est effacé).
-// Utilisé par footer.php et par le partial de rafraîchissement sélectif.
-function swv_footer_menu_title_html( $mod_key ) {
-    $defauts = wp_list_pluck( swv_footer_menus(), 'defaut', 'mod' );
-    $titre   = get_theme_mod( $mod_key, $defauts[ $mod_key ] ?? '' );
-    return $titre !== '' ? '<h4>' . esc_html( $titre ) . '</h4>' : '';
-}
-
-// Alignement des colonnes de menus du pied de page : left | center | right.
-function swv_footer_align() {
-    $v = get_theme_mod( 'swv_footer_align', 'center' );
-    return in_array( $v, array( 'left', 'center', 'right' ), true ) ? $v : 'center';
-}
-
 // ================================================================
 // CUSTOMIZER
 // ================================================================
@@ -72,65 +48,6 @@ function swv_customizer( $wp_customize ) {
     swv_add_color_setting( $wp_customize, 'swv_color_nav_text',  __( 'Couleur du texte des menus', 'seliweb-view' ), '' );
     swv_add_color_setting( $wp_customize, 'swv_color_h1',        __( 'Couleur des titres H1', 'seliweb-view' ), '' );
     swv_add_color_setting( $wp_customize, 'swv_color_h2',        __( 'Couleur des titres H2', 'seliweb-view' ), '' );
-
-    // --- Pied de page : titre affiché au-dessus de chaque colonne de menu ---
-    // transport = postMessage + partial de rafraîchissement sélectif : un
-    // crayon d'édition apparaît à côté de chaque titre dans l'aperçu, et le
-    // clic ouvre le champ correspondant ici. (C'est la mécanique standard de
-    // WordPress, comme pour le titre du site ou les éléments de menu.)
-    $wp_customize->add_section( 'swv_footer', array(
-        'title'    => __( 'Pied de page', 'seliweb-view' ),
-        'priority' => 160,
-    ) );
-
-    $i = 0;
-    foreach ( swv_footer_menus() as $conf ) {
-        $i++;
-        $wp_customize->add_setting( $conf['mod'], array(
-            'default'           => $conf['defaut'],
-            'sanitize_callback' => 'sanitize_text_field',
-            'transport'         => 'postMessage',
-        ) );
-        $wp_customize->add_control( $conf['mod'], array(
-            /* translators: %d : numéro de la colonne de pied de page */
-            'label'       => sprintf( __( 'Titre — colonne %d', 'seliweb-view' ), $i ),
-            'section'     => 'swv_footer',
-            'type'        => 'text',
-            'description' => 1 === $i
-                ? __( "Titre affiché au-dessus de chaque menu de pied de page. Laisser vide pour n'afficher aucun titre. La colonne n'apparaît que si un menu est assigné à son emplacement (Apparence → Menus).", 'seliweb-view' )
-                : '',
-        ) );
-
-        if ( isset( $wp_customize->selective_refresh ) ) {
-            $mod_key = $conf['mod'];
-            $wp_customize->selective_refresh->add_partial( $mod_key, array(
-                'selector'            => '.swv-footer-menu-title-' . $i,
-                'container_inclusive' => false,
-                'render_callback'     => function () use ( $mod_key ) {
-                    return swv_footer_menu_title_html( $mod_key );
-                },
-            ) );
-        }
-    }
-
-    // --- Pied de page : alignement des colonnes de menus ---
-    $wp_customize->add_setting( 'swv_footer_align', array(
-        'default'           => 'center',
-        'sanitize_callback' => function ( $v ) {
-            return in_array( $v, array( 'left', 'center', 'right' ), true ) ? $v : 'center';
-        },
-        'transport'         => 'refresh',
-    ) );
-    $wp_customize->add_control( 'swv_footer_align', array(
-        'label'       => __( 'Alignement des colonnes de menus', 'seliweb-view' ),
-        'section'     => 'swv_footer',
-        'type'        => 'radio',
-        'choices'     => array(
-            'left'   => __( 'À gauche', 'seliweb-view' ),
-            'center' => __( 'Au centre', 'seliweb-view' ),
-            'right'  => __( 'À droite', 'seliweb-view' ),
-        ),
-    ) );
 }
 add_action( 'customize_register', 'swv_customizer' );
 
@@ -243,10 +160,7 @@ function swv_setup() {
     ) );
 
     register_nav_menus( array(
-        'primary'  => __( 'Menu principal',          'seliweb-view' ),
-        'footer-1' => __( 'Pied de page — colonne 1','seliweb-view' ),
-        'footer-2' => __( 'Pied de page — colonne 2','seliweb-view' ),
-        'footer-3' => __( 'Pied de page — colonne 3','seliweb-view' ),
+        'primary'  => __( 'Menu principal', 'seliweb-view' ),
     ) );
 
     // La barre latérale "swv-sidebar" (widgets à côté des annonces) est
@@ -254,6 +168,30 @@ function swv_setup() {
     // fonctionner avec n'importe quel thème, pas seulement seliweb-view.
 }
 add_action( 'after_setup_theme', 'swv_setup' );
+
+// ================================================================
+// PIED DE PAGE : zones de widgets
+// ================================================================
+// Remplace l'ancien système de colonnes de menus (retiré) : n'importe
+// quel widget peut désormais y être placé depuis Apparence → Widgets,
+// notamment le widget natif « Menu de navigation » pour reprendre un
+// menu créé dans Apparence → Menus. Une colonne n'apparaît que si un
+// widget lui est assigné (voir footer.php).
+function swv_footer_widgets() {
+    for ( $i = 1; $i <= 3; $i++ ) {
+        register_sidebar( array(
+            /* translators: %d : numéro de la colonne de pied de page */
+            'name'          => sprintf( __( 'Pied de page %d', 'seliweb-view' ), $i ),
+            'id'            => 'swv-footer-' . $i,
+            'description'   => __( "Ajoutez ici les widgets de votre choix (par ex. le widget « Menu de navigation » pour afficher un menu créé dans Apparence → Menus). Colonne masquée si vide.", 'seliweb-view' ),
+            'before_widget' => '<div class="swv-footer-widget">',
+            'after_widget'  => '</div>',
+            'before_title'  => '<h4 class="widget-title">',
+            'after_title'   => '</h4>',
+        ) );
+    }
+}
+add_action( 'widgets_init', 'swv_footer_widgets' );
 
 // ================================================================
 // SCRIPTS & STYLES

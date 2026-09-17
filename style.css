@@ -2,7 +2,7 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.8.7
+Version: 0.8.11
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
 */
@@ -225,6 +225,71 @@ img { max-width: 100%; height: auto; display: block; }
     text-decoration: none;
 }
 
+/* Sous-menus (dépôt de niveau 2) */
+#swv-nav ul ul.sub-menu {
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Bouton hamburger — masqué en version bureau */
+.swv-nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin-right: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.swv-nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--color-nav-text);
+    border-radius: 2px;
+    transition: transform .2s ease, opacity .2s ease;
+}
+.swv-nav-toggle:hover span { background: var(--color-white); }
+
+/* Version mobile : bouton visible, menu replié par défaut.
+   Sélecteurs à deux ID (#swv-nav #swv-nav-menu) : la règle générale
+   "#swv-nav ul { display:flex }" plus haut a pour spécificité 1 ID + 1
+   balise, donc un simple "#swv-nav-menu { display:none }" (1 ID) ne
+   suffisait pas à la contredire — le menu restait visible en permanence
+   quel que soit l'état du bouton. */
+@media (max-width: 782px) {
+    .swv-nav-inner { flex-wrap: wrap; }
+    .swv-nav-toggle { display: flex; }
+
+    #swv-nav #swv-nav-menu {
+        display: none;
+        flex-direction: column;
+        gap: 0;
+        flex-basis: 100%;
+        width: 100%;
+        padding: 6px 0 10px;
+    }
+    #swv-nav #swv-nav-menu.is-open { display: flex; }
+
+    #swv-nav #swv-nav-menu li { width: 100%; }
+    #swv-nav #swv-nav-menu li a { padding: 12px 6px; }
+
+    #swv-nav #swv-nav-menu ul.sub-menu {
+        padding-left: 16px;
+    }
+
+    /* Bouton transformé en croix quand le menu est ouvert */
+    .swv-nav-toggle.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .swv-nav-toggle.is-open span:nth-child(2) { opacity: 0; }
+    .swv-nav-toggle.is-open span:nth-child(3) { opacity: 0; }
+    .swv-nav-toggle.is-open span:nth-child(4) { transform: translateY(-6px) rotate(-45deg); }
+}
+
 /* ================================================================
    PIED DE PAGE
    ================================================================ */
@@ -241,21 +306,17 @@ img { max-width: 100%; height: auto; display: block; }
     padding: 0 20px;
 }
 
-.swv-footer-menus {
+.swv-footer-widgets {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 24px 56px;
     margin-bottom: 24px;
 }
 
-.swv-footer-menu { min-width: 150px; }
+.swv-footer-widget-col { min-width: 150px; }
 
-/* Alignement du bloc de colonnes (réglage Personnaliser → Pied de page) */
-.swv-footer-menus--left   { justify-content: flex-start; }
-.swv-footer-menus--center { justify-content: center; }
-.swv-footer-menus--right  { justify-content: flex-end; }
-
-.swv-footer-menu h4 {
+.swv-footer-widget-col .widget-title {
     font-family: var(--font-title);
     font-size: .9rem;
     font-weight: 700;
@@ -265,20 +326,14 @@ img { max-width: 100%; height: auto; display: block; }
     margin-bottom: 10px;
 }
 
-/* Aperçu de la personnalisation : garder une zone cliquable pour le
-   crayon d'édition même quand le titre de la colonne est vide. */
-.customize-partial-edit-shortcuts-shown .swv-footer-menu-title {
-    min-height: 1.4em;
-}
-
-.swv-footer-menu ul { list-style: none; }
-.swv-footer-menu ul li { margin-bottom: 6px; }
-.swv-footer-menu ul li a {
+.swv-footer-widget-col ul { list-style: none; margin: 0; padding: 0; }
+.swv-footer-widget-col ul li { margin-bottom: 6px; }
+.swv-footer-widget-col a {
     color: rgba(255,255,255,.7);
     font-size: .88rem;
     transition: color .15s;
 }
-.swv-footer-menu ul li a:hover { color: var(--color-white); text-decoration: none; }
+.swv-footer-widget-col a:hover { color: var(--color-white); text-decoration: none; }
 
 .swv-footer-bottom {
     border-top: 1px solid rgba(255,255,255,.12);
@@ -440,6 +495,6 @@ img { max-width: 100%; height: auto; display: block; }
    ================================================================ */
 @media (max-width: 600px) {
     .swv-header-inner { flex-wrap: wrap; min-height: auto; }
-    .swv-footer-menus { flex-direction: column; gap: 20px; }
+    .swv-footer-widgets { flex-direction: column; gap: 20px; }
     .swv-footer-bottom { flex-direction: column; }
 }

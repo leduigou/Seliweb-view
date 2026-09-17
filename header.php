@@ -107,7 +107,48 @@ if ( is_user_logged_in() ) {
 <?php if ( has_nav_menu('primary') ) : ?>
 <nav id="swv-nav" aria-label="<?php esc_attr_e('Navigation principale','seliweb-view'); ?>">
     <div class="swv-nav-inner">
-        <?php wp_nav_menu(array('theme_location'=>'primary','container'=>false,'depth'=>2)); ?>
+        <button type="button" id="swv-nav-toggle" class="swv-nav-toggle"
+                aria-controls="swv-nav-menu" aria-expanded="false"
+                aria-label="<?php esc_attr_e('Ouvrir le menu','seliweb-view'); ?>">
+            <span></span><span></span><span></span><span></span>
+        </button>
+        <?php wp_nav_menu(array(
+            'theme_location' => 'primary',
+            'container'      => false,
+            'depth'          => 2,
+            'menu_id'        => 'swv-nav-menu',
+        )); ?>
     </div>
 </nav>
 <?php endif; ?>
+
+<script>
+(function(){
+    var toggle = document.getElementById('swv-nav-toggle');
+    var menu   = document.getElementById('swv-nav-menu');
+    if (!toggle || !menu) return;
+
+    function fermer(){
+        menu.classList.remove('is-open');
+        toggle.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function(){
+        var ouvert = menu.classList.toggle('is-open');
+        toggle.classList.toggle('is-open', ouvert);
+        toggle.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+    });
+    document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape') fermer();
+    });
+    document.addEventListener('click', function(e){
+        if (!menu.classList.contains('is-open')) return;
+        if (menu.contains(e.target) || toggle.contains(e.target)) return;
+        fermer();
+    });
+    // Referme le menu quand on clique un lien (navigation vers une nouvelle page)
+    menu.addEventListener('click', function(e){
+        if (e.target.closest('a')) fermer();
+    });
+})();
+</script>
