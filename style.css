@@ -2,7 +2,7 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.8.11
+Version: 0.8.12
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
 */
@@ -225,10 +225,44 @@ img { max-width: 100%; height: auto; display: block; }
     text-decoration: none;
 }
 
-/* Sous-menus (dépôt de niveau 2) */
+/* Sous-menus (dépôt de niveau 2) — en colonne dans tous les cas (repris
+   tel quel en mobile, où le sous-menu reste dans le flux normal, juste
+   indenté). Le survol/repliage en menu déroulant n'est activé qu'en
+   version bureau, ci-dessous. */
 #swv-nav ul ul.sub-menu {
     flex-direction: column;
     gap: 0;
+}
+
+/* Ancrage du menu déroulant : chaque <li> devient le référentiel de
+   positionnement de son sous-menu (sans effet en mobile, où le
+   sous-menu n'est pas positionné en absolu). */
+#swv-nav ul li {
+    position: relative;
+}
+
+/* Version bureau uniquement : le sous-menu est masqué et positionné en
+   superposition, affiché au survol ou au focus clavier (Tab) du lien
+   parent. Un fond opaque est nécessaire car le sous-menu se superpose
+   au contenu de la page en dessous (position:absolute), qui serait
+   sinon visible par transparence à travers les liens. */
+@media (min-width: 783px) {
+    #swv-nav ul ul.sub-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 100%;
+        width: max-content;
+        background: var(--color-nav-bg);
+        border-bottom: 2px solid var(--color-accent);
+        z-index: 1000;
+    }
+
+    #swv-nav ul li:hover > ul.sub-menu,
+    #swv-nav ul li:focus-within > ul.sub-menu {
+        display: flex;
+    }
 }
 
 /* Bouton hamburger — masqué en version bureau */
