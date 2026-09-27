@@ -2,9 +2,11 @@
 Theme Name: Seliweb View
 Theme URI: https://github.com/seliweb
 Description: Thème front-end pour le plugin Seliweb - Système d'Échange Local
-Version: 0.8.12
+Version: 0.9.0
 Author: Philippe Le Duigou
 Text Domain: seliweb-view
+Requires at least: 6.0
+Requires PHP: 7.4
 */
 
 /* ================================================================
