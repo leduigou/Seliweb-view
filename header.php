@@ -84,17 +84,11 @@ if ( is_user_logged_in() ) {
             </a>
 
             <?php if ($logout_shown) : ?>
-                <a href="<?php echo esc_url($logout_url); ?>"
-                   style="font-size:.72rem;color:rgba(255,255,255,.65);text-decoration:none;"
-                   onmouseover="this.style.color='#fff'"
-                   onmouseout="this.style.color='rgba(255,255,255,.65)'">
+                <a href="<?php echo esc_url($logout_url); ?>" class="swv-login-link">
                     <?php esc_html_e('Déconnexion','seliweb-view'); ?>
                 </a>
             <?php elseif ( get_option('users_can_register') ) : ?>
-                <a href="<?php echo esc_url( $inscription_url ); ?>"
-                   style="font-size:.72rem;color:rgba(255,255,255,.65);text-decoration:none;"
-                   onmouseover="this.style.color='#fff'"
-                   onmouseout="this.style.color='rgba(255,255,255,.65)'">
+                <a href="<?php echo esc_url( $inscription_url ); ?>" class="swv-login-link">
                     <?php esc_html_e("S'inscrire",'seliweb-view'); ?>
                 </a>
             <?php endif; ?>

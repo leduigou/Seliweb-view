@@ -23,6 +23,9 @@ Les nouvelles versions sont publiées sur ce dépôt GitHub et détectées autom
 
 ## Changelog
 
+### 0.9.1
+- Liens « S'inscrire » et « Déconnexion » de l'en-tête à la même typographie que le bouton Connexion.
+
 ### 0.9.0
 - Version stable, alignée sur la sortie 1.0.0 de l'extension Seliweb-WP.
 - Bandeau, navigation (avec sous-menus déroulants), pied de page en zones de widgets, page FAQ en accordéon.
