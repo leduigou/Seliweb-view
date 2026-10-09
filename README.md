@@ -23,6 +23,9 @@ Les nouvelles versions sont publiées sur ce dépôt GitHub et détectées autom
 
 ## Changelog
 
+### 0.9.2
+- Pages de texte : les listes à puces/numéros sont désormais nichées dans le retrait du texte (le reset global supprimait leur indentation native) ; marge de gauche du bloc de texte légèrement augmentée.
+
 ### 0.9.1
 - Liens « S'inscrire » et « Déconnexion » de l'en-tête à la même typographie que le bouton Connexion.
 
