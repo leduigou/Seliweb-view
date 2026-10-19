@@ -23,6 +23,9 @@ Les nouvelles versions sont publiées sur ce dépôt GitHub et détectées autom
 
 ## Changelog
 
+### 0.9.3
+- Personnalisation → Couleurs : deux nouveaux réglages, « Couleur du bouton Connexion » et « Couleur du texte du bouton Connexion » (texte du bouton + liens Déconnexion/S'inscrire), pour garder le bouton visible quand une photo d'entête fait disparaître le blanc par défaut.
+
 ### 0.9.2
 - Pages de texte : les listes à puces/numéros sont désormais nichées dans le retrait du texte (le reset global supprimait leur indentation native) ; marge de gauche du bloc de texte légèrement augmentée.
 

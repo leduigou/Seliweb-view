@@ -48,6 +48,8 @@ function swv_customizer( $wp_customize ) {
     swv_add_color_setting( $wp_customize, 'swv_color_nav_text',  __( 'Couleur du texte des menus', 'seliweb-view' ), '' );
     swv_add_color_setting( $wp_customize, 'swv_color_h1',        __( 'Couleur des titres H1', 'seliweb-view' ), '' );
     swv_add_color_setting( $wp_customize, 'swv_color_h2',        __( 'Couleur des titres H2', 'seliweb-view' ), '' );
+    swv_add_color_setting( $wp_customize, 'swv_color_login_btn',  __( 'Couleur du bouton Connexion', 'seliweb-view' ), '', __( "Utile si une photo d'entête rend le bouton peu visible.", 'seliweb-view' ) );
+    swv_add_color_setting( $wp_customize, 'swv_color_login_text', __( 'Couleur du texte du bouton Connexion', 'seliweb-view' ), '', __( 'Texte du bouton et liens Déconnexion / S\'inscrire qui l\'accompagnent.', 'seliweb-view' ) );
 }
 add_action( 'customize_register', 'swv_customizer' );
 
@@ -76,6 +78,12 @@ function swv_dynamic_css() {
     $header_textcolor = get_header_textcolor();
     $header_text = ( $header_textcolor && $header_textcolor !== 'blank' ) ? '#' . $header_textcolor : 'var(--color-white)';
 
+    $login_btn = get_theme_mod( 'swv_color_login_btn', '' );
+    if ( ! $login_btn ) $login_btn = 'rgba(255,255,255,.12)';
+
+    $login_text = get_theme_mod( 'swv_color_login_text', '' );
+    if ( ! $login_text ) $login_text = 'rgba(255,255,255,.9)';
+
     echo '<style id="swv-dynamic-css">
     :root {
         --color-primary:     ' . esc_attr($color)       . ';
@@ -87,6 +95,8 @@ function swv_dynamic_css() {
         --color-header-text: ' . esc_attr($header_text)  . ';
         --color-h1:          ' . esc_attr($h1_color)     . ';
         --color-h2:          ' . esc_attr($h2_color)     . ';
+        --color-login-btn:   ' . esc_attr($login_btn)    . ';
+        --color-login-text:  ' . esc_attr($login_text)   . ';
     }
     </style>' . "\n";
 }
@@ -117,6 +127,8 @@ function swv_customizer_live() {
     swvBindColor('swv_color_nav_text',  ['--color-nav-text']);
     swvBindColor('swv_color_h1',        ['--color-h1']);
     swvBindColor('swv_color_h2',        ['--color-h2']);
+    swvBindColor('swv_color_login_btn',  ['--color-login-btn']);
+    swvBindColor('swv_color_login_text', ['--color-login-text']);
     ";
     wp_add_inline_script( 'customize-preview', $js );
 }

@@ -75,9 +75,9 @@ if ( is_user_logged_in() ) {
             <a href="<?php echo esc_url($btn_url); ?>" class="swv-login-btn">
                 <svg class="swv-login-icon" viewBox="0 0 36 36" fill="none"
                      xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="18" cy="13" r="7" fill="rgba(255,255,255,.9)"/>
+                    <circle cx="18" cy="13" r="7" fill="var(--color-login-text, rgba(255,255,255,.9))"/>
                     <path d="M4 34c0-7.732 6.268-14 14-14s14 6.268 14 14"
-                          stroke="rgba(255,255,255,.9)" stroke-width="2.5"
+                          stroke="var(--color-login-text, rgba(255,255,255,.9))" stroke-width="2.5"
                           stroke-linecap="round" fill="none"/>
                 </svg>
                 <span class="swv-login-label"><?php echo esc_html($login_label); ?></span>
